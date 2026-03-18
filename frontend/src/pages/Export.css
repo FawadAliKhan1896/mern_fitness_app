@@ -1,0 +1,17 @@
+.export-card p {
+  margin: 0 0 24px;
+  color: var(--text-muted);
+}
+
+.export-form {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 600px) {
+  .export-form {
+    grid-template-columns: 1fr;
+  }
+}

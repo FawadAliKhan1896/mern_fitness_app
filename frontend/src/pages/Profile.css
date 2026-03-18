@@ -1,0 +1,43 @@
+.profile-card {
+  max-width: 480px;
+  text-align: center;
+}
+
+.profile-avatar {
+  margin-bottom: 16px;
+}
+
+.profile-avatar img,
+.avatar-placeholder.large {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar-placeholder.large {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: white;
+  font-size: 36px;
+  font-weight: 600;
+}
+
+.profile-username {
+  color: var(--text-muted);
+  margin: 0 0 24px;
+}
+
+.profile-form {
+  text-align: left;
+}
+
+.profile-msg.success {
+  color: var(--accent);
+}
+
+.profile-msg.error {
+  color: #c33;
+}

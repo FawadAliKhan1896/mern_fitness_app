@@ -1,0 +1,78 @@
+.nutrition-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.nutrition-card .nutrition-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.nutrition-date {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.nutrition-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.nutrition-food {
+  margin: 0 0 8px;
+  font-weight: 500;
+}
+
+.nutrition-macros {
+  display: flex;
+  gap: 16px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 24px;
+}
+
+.modal {
+  max-width: 480px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal h2 {
+  margin: 0 0 20px;
+}
+
+.form-row-macros {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 600px) {
+  .form-row-macros {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: inherit;
+  text-decoration: underline;
+}

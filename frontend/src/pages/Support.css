@@ -1,0 +1,11 @@
+.support-card p {
+  margin: 0 0 24px;
+  color: var(--text-muted);
+}
+
+.support-success {
+  padding: 24px;
+  background: var(--bg-alt);
+  border-radius: 8px;
+  color: var(--text);
+}

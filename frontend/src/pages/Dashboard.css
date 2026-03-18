@@ -1,0 +1,247 @@
+/* Dashboard - Modern, polished */
+
+.dashboard-container {
+  padding-bottom: 48px;
+}
+
+.dashboard-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 20px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: dashboard-spin 0.8s linear infinite;
+}
+
+@keyframes dashboard-spin {
+  to { transform: rotate(360deg); }
+}
+
+.dashboard-loading p {
+  color: var(--text-muted);
+}
+
+.dashboard-error {
+  text-align: center;
+  padding: 48px 24px;
+}
+
+.dashboard-error p {
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+.dashboard-header {
+  margin-bottom: 32px;
+}
+
+.dashboard-header h1 {
+  font-size: clamp(24px, 3vw, 30px);
+  margin: 0 0 6px;
+  font-weight: 700;
+}
+
+.dashboard-sub {
+  color: var(--text-muted);
+  margin: 0;
+  font-size: 15px;
+}
+
+/* Quick actions */
+.quick-actions {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.quick-action-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  background: var(--white);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 500;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  flex: 1;
+  min-width: 140px;
+}
+
+.quick-action-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  border-color: rgba(255, 74, 155, 0.3);
+  color: var(--accent);
+}
+
+.quick-action-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 74, 155, 0.1);
+  color: var(--accent);
+}
+
+.quick-action-card:hover .quick-action-icon {
+  background: rgba(255, 74, 155, 0.15);
+}
+
+.quick-action-label {
+  font-size: 15px;
+}
+
+/* Dashboard cards */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.dashboard-card {
+  background: var(--white);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  transition: box-shadow 0.25s ease;
+}
+
+.dashboard-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.dashboard-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.dashboard-card-header h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.dashboard-card-body {
+  padding: 20px 24px;
+}
+
+.dashboard-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.dashboard-list-item {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.dashboard-list-item:last-child {
+  border-bottom: none;
+}
+
+.list-item-link {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.list-item-link:hover {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.muted {
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.meal-badge {
+  display: inline-block;
+  background: var(--accent);
+  color: white;
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  margin-right: 8px;
+  text-transform: capitalize;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 32px 16px;
+}
+
+.empty-state p {
+  color: var(--text-muted);
+  margin: 0 0 16px;
+}
+
+/* Notifications */
+.notifications-preview {
+  margin-bottom: 24px;
+}
+
+.notifications-card {
+  background: rgba(255, 74, 155, 0.06);
+  border: 1px solid rgba(255, 74, 155, 0.15);
+  border-radius: 16px;
+  padding: 20px 24px;
+}
+
+.notifications-card h2 {
+  margin: 0 0 16px;
+  font-size: 17px;
+}
+
+.notification-item {
+  padding: 10px 0;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.link-more {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+@media (max-width: 640px) {
+  .quick-actions {
+    flex-direction: column;
+  }
+
+  .quick-action-card {
+    min-width: 0;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,20 @@
+.settings-form {
+  max-width: 480px;
+}
+
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: auto;
+}
+
+.saved-msg {
+  margin-left: 12px;
+  color: var(--accent);
+  font-weight: 600;
+}
