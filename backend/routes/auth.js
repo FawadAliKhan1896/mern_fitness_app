@@ -83,11 +83,12 @@ router.put('/me', authenticateToken,
       if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
       }
-  const { name, email } = req.body;
+  const { name, email, profile_picture } = req.body;
   const updates = [];
   const values = [];
   if (name !== undefined) { updates.push('name = ?'); values.push(name); }
   if (email !== undefined) { updates.push('email = ?'); values.push(email); }
+  if (profile_picture !== undefined) { updates.push('profile_picture = ?'); values.push(profile_picture); }
   if (updates.length === 0) return res.status(400).json({ error: 'No valid fields to update' });
   updates.push('updated_at = CURRENT_TIMESTAMP');
   values.push(req.user.id);

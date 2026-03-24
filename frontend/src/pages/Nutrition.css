@@ -4,11 +4,32 @@
   gap: 16px;
 }
 
+.nutrition-card.with-image {
+  display: flex;
+  padding: 0;
+  overflow: hidden;
+  min-height: 120px;
+}
+
+.nutrition-image {
+  width: 150px;
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+}
+
+.nutrition-content {
+  padding: 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
 .nutrition-card .nutrition-header {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .nutrition-date {

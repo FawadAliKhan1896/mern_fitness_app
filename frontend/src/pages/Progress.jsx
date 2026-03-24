@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
+import { ResponsiveContainer, LineChart, Line, XAxis, Tooltip, CartesianGrid } from 'recharts';
 import { progress as progressApi } from '../api/client';
 import ProgressForm from '../components/ProgressForm';
 import './Progress.css';
@@ -65,30 +66,50 @@ export default function Progress() {
           <p>No progress entries. <button className="link-btn" onClick={() => setShowForm(true)}>Record your first entry</button></p>
         </div>
       ) : (
-        <div className="progress-list">
-          {entries.map((entry) => (
-            <div key={entry.id} className="progress-card card">
-              <div className="progress-header">
-                <span className="progress-date">{format(new Date(entry.date), 'MMM d, yyyy')}</span>
-                <div className="progress-actions">
-                  <button className="btn btn-ghost btn-sm" onClick={() => { setEditing(entry); setShowForm(true); }}>Edit</button>
-                  <button className="btn btn-ghost btn-sm danger" onClick={() => handleDelete(entry.id)}>Delete</button>
+        <div className="progress-dashboard">
+          {entries.filter(e => e.weight).length > 1 && (
+            <section className="progress-chart-section card">
+              <h2>Weight History</h2>
+              <div style={{ height: 250 }}>
+                 <ResponsiveContainer width="100%" height="100%">
+                   <LineChart data={[...entries].reverse().filter(e => e.weight)}>
+                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+                     <XAxis dataKey="date" tickFormatter={(v) => format(new Date(v), 'MM/dd')} tick={{ fontSize: 12 }} />
+                     <Tooltip 
+                        labelFormatter={(v) => format(new Date(v), 'MMM d, yyyy')}
+                        contentStyle={{ borderRadius: '8px', border: 'none', background: '#1e293b', color: '#fff' }} />
+                     <Line type="monotone" dataKey="weight" stroke="#38bdf8" strokeWidth={3} activeDot={{ r: 6 }} dot={{ r: 3 }} />
+                   </LineChart>
+                 </ResponsiveContainer>
+              </div>
+            </section>
+          )}
+
+          <div className="progress-grid">
+            {entries.map((entry) => (
+              <div key={entry.id} className="progress-card card glass-panel">
+                <div className="progress-header">
+                  <span className="progress-date">{format(new Date(entry.date), 'MMM d, yyyy')}</span>
+                  <div className="progress-actions">
+                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => { setEditing(entry); setShowForm(true); }}>Edit</button>
+                    <button type="button" className="btn btn-ghost btn-sm danger" onClick={() => handleDelete(entry.id)}>Delete</button>
+                  </div>
                 </div>
+                <div className="progress-metrics">
+                  {entry.weight != null && <div className="metric"><span className="label">Weight</span><span className="value">{entry.weight} kg</span></div>}
+                  {entry.body_fat != null && <div className="metric"><span className="label">Body Fat</span><span className="value">{entry.body_fat}%</span></div>}
+                  {entry.chest != null && <div className="metric"><span className="label">Chest</span><span className="value">{entry.chest} cm</span></div>}
+                  {entry.waist != null && <div className="metric"><span className="label">Waist</span><span className="value">{entry.waist} cm</span></div>}
+                  {entry.hips != null && <div className="metric"><span className="label">Hips</span><span className="value">{entry.hips} cm</span></div>}
+                  {entry.biceps != null && <div className="metric"><span className="label">Biceps</span><span className="value">{entry.biceps} cm</span></div>}
+                  {entry.thighs != null && <div className="metric"><span className="label">Thighs</span><span className="value">{entry.thighs} cm</span></div>}
+                  {entry.run_time_minutes != null && <div className="metric"><span className="label">Run Time</span><span className="value">{entry.run_time_minutes} min</span></div>}
+                  {entry.lifting_weight != null && <div className="metric"><span className="label">Lift</span><span className="value">{entry.lifting_weight} kg</span></div>}
+                </div>
+                {entry.notes && <p className="progress-notes">{entry.notes}</p>}
               </div>
-              <div className="progress-metrics">
-                {entry.weight != null && <div className="metric"><span className="label">Weight</span><span className="value">{entry.weight} kg</span></div>}
-                {entry.body_fat != null && <div className="metric"><span className="label">Body Fat</span><span className="value">{entry.body_fat}%</span></div>}
-                {entry.chest != null && <div className="metric"><span className="label">Chest</span><span className="value">{entry.chest} cm</span></div>}
-                {entry.waist != null && <div className="metric"><span className="label">Waist</span><span className="value">{entry.waist} cm</span></div>}
-                {entry.hips != null && <div className="metric"><span className="label">Hips</span><span className="value">{entry.hips} cm</span></div>}
-                {entry.biceps != null && <div className="metric"><span className="label">Biceps</span><span className="value">{entry.biceps} cm</span></div>}
-                {entry.thighs != null && <div className="metric"><span className="label">Thighs</span><span className="value">{entry.thighs} cm</span></div>}
-                {entry.run_time_minutes != null && <div className="metric"><span className="label">Run Time</span><span className="value">{entry.run_time_minutes} min</span></div>}
-                {entry.lifting_weight != null && <div className="metric"><span className="label">Lift</span><span className="value">{entry.lifting_weight} kg</span></div>}
-              </div>
-              {entry.notes && <p className="progress-notes">{entry.notes}</p>}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
     </div>

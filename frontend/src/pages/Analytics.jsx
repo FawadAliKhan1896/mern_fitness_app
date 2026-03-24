@@ -113,12 +113,12 @@ export default function Analytics() {
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis dataKey="date" tick={{ fontSize: 12 }} />
                 <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="calories" stroke="#ff4a9b" name="Calories" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="protein" stroke="#4a90d9" name="Protein (g)" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="carbs" stroke="#50c878" name="Carbs (g)" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="fat" stroke="#f5a623" name="Fat (g)" strokeWidth={2} dot={false} />
+                <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#f8fafc' }} />
+                <Legend iconType="circle" />
+                <Line type="monotone" dataKey="calories" stroke="#38bdf8" name="Calories" strokeWidth={4} activeDot={{ r: 8 }} dot={{ r: 4, strokeWidth: 2 }} />
+                <Line type="monotone" dataKey="protein" stroke="#34d399" name="Protein (g)" strokeWidth={4} activeDot={{ r: 8 }} dot={false} />
+                <Line type="monotone" dataKey="carbs" stroke="#fbbf24" name="Carbs (g)" strokeWidth={4} activeDot={{ r: 8 }} dot={false} />
+                <Line type="monotone" dataKey="fat" stroke="#f43f5e" name="Fat (g)" strokeWidth={4} activeDot={{ r: 8 }} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           ) : (

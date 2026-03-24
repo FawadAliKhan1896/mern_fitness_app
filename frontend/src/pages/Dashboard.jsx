@@ -163,6 +163,23 @@ export default function Dashboard() {
             )}
           </div>
         </section>
+
+        <section className="dashboard-card body-cta-card">
+          <div className="dashboard-card-header">
+            <h2>Body Transformation</h2>
+            <Link to="/body-transformation" className="btn btn-outline btn-sm">Launch Scan</Link>
+          </div>
+          <div className="dashboard-card-body cta-body">
+            <div className="cta-icon-wrapper">
+               <span className="scan-icon">⚡️</span>
+            </div>
+            <div className="cta-text">
+               <h4>Advanced Anatomical Scanner</h4>
+               <p className="muted">Visualize your physical transformation using our new dedicated interactive engine.</p>
+               <Link to="/body-transformation" className="btn btn-primary" style={{ marginTop: '1rem' }}>Open Transformation Center</Link>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   );

@@ -6,6 +6,12 @@ import NutritionForm from '../components/NutritionForm';
 import './Nutrition.css';
 
 const MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snacks'];
+const MEAL_IMAGES = {
+  breakfast: 'https://images.unsplash.com/photo-1525351484163-e52920b125f7?w=150&h=150&fit=crop',
+  lunch: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=150&h=150&fit=crop',
+  dinner: 'https://images.unsplash.com/photo-1602881917760-73ce414ce5f1?w=150&h=150&fit=crop',
+  snacks: 'https://images.unsplash.com/photo-1599490659213-e2b9527bd08c?w=150&h=150&fit=crop',
+};
 
 export default function Nutrition() {
   const [logs, setLogs] = useState([]);
@@ -91,21 +97,27 @@ export default function Nutrition() {
       ) : (
         <div className="nutrition-list">
           {logs.map((log) => (
-            <div key={log.id} className="nutrition-card card">
-              <div className="nutrition-header">
-                <span className="meal-badge">{log.meal_type}</span>
-                <span className="nutrition-date">{format(new Date(log.date), 'MMM d, yyyy')}</span>
-                <div className="nutrition-actions">
-                  <button className="btn btn-ghost btn-sm" onClick={() => { setEditing(log); setShowForm(true); }}>Edit</button>
-                  <button className="btn btn-ghost btn-sm danger" onClick={() => handleDelete(log.id)}>Delete</button>
+            <div key={log.id} className="nutrition-card card with-image">
+              <div 
+                className="nutrition-image" 
+                style={{ backgroundImage: `url(${MEAL_IMAGES[log.meal_type] || MEAL_IMAGES.snacks})` }} 
+              />
+              <div className="nutrition-content">
+                <div className="nutrition-header">
+                  <span className={`meal-badge ${log.meal_type}`}>{log.meal_type}</span>
+                  <span className="nutrition-date">{format(new Date(log.date), 'MMM d, yyyy')}</span>
+                  <div className="nutrition-actions">
+                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => { setEditing(log); setShowForm(true); }}>Edit</button>
+                    <button type="button" className="btn btn-ghost btn-sm danger" onClick={() => handleDelete(log.id)}>Delete</button>
+                  </div>
                 </div>
-              </div>
-              <p className="nutrition-food">{log.food_items}</p>
-              <div className="nutrition-macros">
-                {log.calories != null && <span>{log.calories} cal</span>}
-                {log.protein != null && <span>P: {log.protein}g</span>}
-                {log.carbs != null && <span>C: {log.carbs}g</span>}
-                {log.fat != null && <span>F: {log.fat}g</span>}
+                <p className="nutrition-food">{log.food_items}</p>
+                <div className="nutrition-macros">
+                  {log.calories != null && <span>{log.calories} cal</span>}
+                  {log.protein != null && <span>P: {log.protein}g</span>}
+                  {log.carbs != null && <span>C: {log.carbs}g</span>}
+                  {log.fat != null && <span>F: {log.fat}g</span>}
+                </div>
               </div>
             </div>
           ))}

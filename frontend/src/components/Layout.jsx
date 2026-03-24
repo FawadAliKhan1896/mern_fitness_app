@@ -7,6 +7,14 @@ export default function Layout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isDark, setIsDark] = useState(() => document.body.classList.contains('dark-mode'));
+
+  const toggleTheme = () => {
+    const next = !isDark;
+    setIsDark(next);
+    document.body.classList.toggle('dark-mode', next);
+    localStorage.setItem('theme', next ? 'dark' : 'light');
+  };
 
   const handleLogout = () => {
     logout();
@@ -19,6 +27,7 @@ export default function Layout({ children }) {
     { to: '/workouts', label: 'Workouts' },
     { to: '/nutrition', label: 'Nutrition' },
     { to: '/progress', label: 'Progress' },
+    { to: '/body-transformation', label: 'Body Transformation' },
     { to: '/analytics', label: 'Analytics' },
     { to: '/export', label: 'Export' },
   ];
@@ -40,6 +49,14 @@ export default function Layout({ children }) {
               </NavLink>
             ))}
             <div className="nav-user">
+              <button 
+                type="button" 
+                className="btn btn-ghost theme-toggle-btn" 
+                onClick={toggleTheme} 
+                aria-label="Toggle Theme"
+              >
+                {isDark ? '☀️' : '🌙'}
+              </button>
               <Link to="/settings" onClick={() => setMenuOpen(false)}>Settings</Link>
               <Link to="/support" onClick={() => setMenuOpen(false)}>Support</Link>
               <Link to="/profile" onClick={() => setMenuOpen(false)}>
