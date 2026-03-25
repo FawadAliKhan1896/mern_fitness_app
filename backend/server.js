@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import connectDB from './db.js';
 import authRoutes from './routes/auth.js';
 import workoutRoutes from './routes/workouts.js';
 import nutritionRoutes from './routes/nutrition.js';
@@ -18,7 +19,10 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors({ origin: ['http://localhost:5173', 'http://localhost:3001'], credentials: true }));
+// Connect to MongoDB
+connectDB();
+
+app.use(cors({ origin: ['http://localhost:5173', `http://localhost:${PORT}`], credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

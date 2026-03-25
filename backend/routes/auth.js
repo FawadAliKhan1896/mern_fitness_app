@@ -2,7 +2,7 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { body, validationResult } from 'express-validator';
-import db from '../db.js';
+import User from '../models/User.js';
 import { authenticateToken, JWT_SECRET } from '../middleware/auth.js';
 
 const router = Router();
@@ -21,18 +21,28 @@ router.post('/register',
       const { username, email, password, name } = req.body;
       const password_hash = await bcrypt.hash(password, 10);
 
-      const result = db.prepare(`
-        INSERT INTO users (username, email, password_hash, name)
-        VALUES (?, ?, ?, ?)
-      `).run(username, email, password_hash, name || username);
+      const user = new User({
+        username,
+        email,
+        password_hash,
+        name: name || username
+      });
 
-      const user = db.prepare('SELECT id, username, email, name, profile_picture, created_at FROM users WHERE id = ?')
-        .get(result.lastInsertRowid);
+      await user.save();
 
-      const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '7d' });
-      res.status(201).json({ user, token });
+      const userResponse = {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        name: user.name,
+        profile_picture: user.profile_picture,
+        created_at: user.createdAt
+      };
+
+      const token = jwt.sign({ id: user._id, username: user.username }, JWT_SECRET, { expiresIn: '7d' });
+      res.status(201).json({ user: userResponse, token });
     } catch (err) {
-      if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+      if (err.code === 11000) {
         return res.status(400).json({ error: 'Username or email already exists' });
       }
       res.status(500).json({ error: err.message });
@@ -51,15 +61,20 @@ router.post('/login',
       }
       const { username, password } = req.body;
 
-      const user = db.prepare('SELECT * FROM users WHERE username = ? OR email = ?')
-        .get(username, username);
+      const user = await User.findOne({
+        $or: [{ username: username }, { email: username }]
+      });
 
       if (!user || !(await bcrypt.compare(password, user.password_hash))) {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
 
-      const { password_hash, ...safeUser } = user;
-      const token = jwt.sign({ id: safeUser.id, username: safeUser.username }, JWT_SECRET, { expiresIn: '7d' });
+      const { password_hash, ...safeUser } = user.toObject();
+      safeUser.id = safeUser._id;
+      delete safeUser._id;
+      delete safeUser.__v;
+
+      const token = jwt.sign({ id: user._id, username: user.username }, JWT_SECRET, { expiresIn: '7d' });
       res.json({ user: safeUser, token });
     } catch (err) {
       res.status(500).json({ error: err.message });
@@ -67,11 +82,24 @@ router.post('/login',
   }
 );
 
-router.get('/me', authenticateToken, (req, res) => {
-  const user = db.prepare('SELECT id, username, email, name, profile_picture, created_at FROM users WHERE id = ?')
-    .get(req.user.id);
-  if (!user) return res.status(404).json({ error: 'User not found' });
-  res.json(user);
+router.get('/me', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('username email name profile_picture createdAt');
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const userResponse = {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      name: user.name,
+      profile_picture: user.profile_picture,
+      created_at: user.createdAt
+    };
+
+    res.json(userResponse);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 router.put('/me', authenticateToken,
@@ -83,23 +111,29 @@ router.put('/me', authenticateToken,
       if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
       }
-  const { name, email, profile_picture } = req.body;
-  const updates = [];
-  const values = [];
-  if (name !== undefined) { updates.push('name = ?'); values.push(name); }
-  if (email !== undefined) { updates.push('email = ?'); values.push(email); }
-  if (profile_picture !== undefined) { updates.push('profile_picture = ?'); values.push(profile_picture); }
-  if (updates.length === 0) return res.status(400).json({ error: 'No valid fields to update' });
-  updates.push('updated_at = CURRENT_TIMESTAMP');
-  values.push(req.user.id);
+      const { name, email, profile_picture } = req.body;
+      const updates = {};
+      if (name !== undefined) updates.name = name;
+      if (email !== undefined) updates.email = email;
+      if (profile_picture !== undefined) updates.profile_picture = profile_picture;
+      if (Object.keys(updates).length === 0) return res.status(400).json({ error: 'No valid fields to update' });
 
-  db.prepare('UPDATE users SET ' + updates.join(', ') + ' WHERE id = ?').run(...values);
-      const user = db.prepare('SELECT id, username, email, name, profile_picture, created_at FROM users WHERE id = ?')
-        .get(req.user.id);
-      res.json(user);
+  const user = await User.findByIdAndUpdate(req.user.id, updates, { new: true })
+    .select('username email name profile_picture createdAt');
+
+  const userResponse = {
+    id: user._id,
+    username: user.username,
+    email: user.email,
+    name: user.name,
+    profile_picture: user.profile_picture,
+    created_at: user.createdAt
+  };
+
+  res.json(userResponse);
     } catch (err) {
-      if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
-        return res.status(400).json({ error: 'Email already in use' });
+      if (err.code === 11000) {
+        return res.status(400).json({ error: 'Email already exists' });
       }
       res.status(500).json({ error: err.message });
     }
