@@ -15,6 +15,7 @@ import Settings from './pages/Settings';
 import Profile from './pages/Profile';
 import Export from './pages/Export';
 import Support from './pages/Support';
+import BodyTransformation from './pages/BodyTransformation';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -48,6 +49,7 @@ function AppRoutes() {
       <Route path="/profile" element={<ProtectedRoute><Layout><Profile /></Layout></ProtectedRoute>} />
       <Route path="/export" element={<ProtectedRoute><Layout><Export /></Layout></ProtectedRoute>} />
       <Route path="/support" element={<ProtectedRoute><Layout><Support /></Layout></ProtectedRoute>} />
+      <Route path="/body-transformation" element={<ProtectedRoute><Layout><BodyTransformation /></Layout></ProtectedRoute>} />
     </Routes>
   );
 }

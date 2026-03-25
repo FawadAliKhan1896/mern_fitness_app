@@ -1,13 +1,13 @@
-import Database from 'better-sqlite3';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import mongoose from "mongoose";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const connectDB = async () => {
+  try {
+    await mongoose.connect("mongodb://127.0.0.1:27017/fitness_app");
+    console.log("✅ MongoDB Connected");
+  } catch (err) {
+    console.error("❌ DB Error:", err.message);
+    process.exit(1);
+  }
+};
 
-const db = new Database(join(__dirname, 'fitness.db'));
-
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
-
-export default db;
+export default connectDB;

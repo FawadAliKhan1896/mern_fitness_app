@@ -5,6 +5,13 @@ import { format } from 'date-fns';
 import './WorkoutForm.css';
 
 const CATEGORIES = ['strength', 'cardio', 'flexibility', 'hiit', 'other'];
+const CATEGORY_ICONS = {
+  strength: '🏋️‍♂️',
+  cardio: '🏃‍♂️',
+  flexibility: '🧘‍♀️',
+  hiit: '⚡',
+  other: '🎯'
+};
 
 export default function WorkoutForm() {
   const { id } = useParams();
@@ -87,21 +94,22 @@ export default function WorkoutForm() {
   return (
     <div className="container">
       <h1>{isEdit ? 'Edit Workout' : 'New Workout'}</h1>
-      <form onSubmit={handleSubmit} className="workout-form card">
-        {error && <div className="form-error">{error}</div>}
-        <div className="form-row">
-          <div className="form-group">
-            <label>Workout Name</label>
-            <input value={name} onChange={(e) => setName(e.target.value)} required />
-          </div>
-          <div className="form-group">
-            <label>Category</label>
-            <select value={category} onChange={(e) => setCategory(e.target.value)}>
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
+      <div className="workout-form-layout">
+        <form onSubmit={handleSubmit} className="workout-form card">
+          {error && <div className="form-error">{error}</div>}
+          <div className="form-row">
+            <div className="form-group">
+              <label>Workout Name</label>
+              <input value={name} onChange={(e) => setName(e.target.value)} required />
+            </div>
+            <div className="form-group">
+              <label>Category</label>
+              <select value={category} onChange={(e) => setCategory(e.target.value)}>
+                {CATEGORIES.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
           <div className="form-group">
             <label>Date</label>
             <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
@@ -132,13 +140,21 @@ export default function WorkoutForm() {
           ))}
         </div>
 
-        <div className="form-actions">
-          <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Saving...' : isEdit ? 'Update' : 'Create'}
-          </button>
-          <button type="button" className="btn btn-ghost" onClick={() => navigate(-1)}>Cancel</button>
+          <div className="form-actions">
+            <button type="submit" className="btn btn-primary" disabled={loading}>
+              {loading ? 'Saving...' : isEdit ? 'Update' : 'Create'}
+            </button>
+            <button type="button" className="btn btn-ghost" onClick={() => navigate(-1)}>Cancel</button>
+          </div>
+        </form>
+        <div className="category-visualizer glass-panel card">
+           <div className="category-icon-wrapper" key={category}>
+             {CATEGORY_ICONS[category]}
+           </div>
+           <h3>{category.charAt(0).toUpperCase() + category.slice(1)} Session</h3>
+           <p className="muted">Log your sets, reps, and track your history carefully.</p>
         </div>
-      </form>
+      </div>
     </div>
   );
 }

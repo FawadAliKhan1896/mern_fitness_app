@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { body, query, validationResult } from 'express-validator';
-import db from '../db.js';
+import Progress from '../models/Progress.js';
 import { authenticateToken } from '../middleware/auth.js';
 
 const router = Router();
@@ -12,34 +12,35 @@ router.get('/', [
   query('metric_type').optional().trim(),
   query('limit').optional().isInt({ min: 1, max: 200 }).toInt(),
   query('offset').optional().isInt({ min: 0 }).toInt(),
-], (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-  let sql = 'SELECT * FROM progress WHERE user_id = ?';
-  const params = [req.user.id];
+    const query = { user_id: req.user.id };
 
-  if (req.query.from) {
-    sql += ' AND date >= ?';
-    params.push(req.query.from);
+    if (req.query.from || req.query.to) {
+      query.date = {};
+      if (req.query.from) query.date.$gte = new Date(req.query.from);
+      if (req.query.to) query.date.$lte = new Date(req.query.to);
+    }
+    if (req.query.metric_type) {
+      query.metric_type = req.query.metric_type;
+    }
+
+    const limit = req.query.limit || 50;
+    const offset = req.query.offset || 0;
+
+    const entries = await Progress.find(query)
+      .sort({ date: -1, createdAt: -1 })
+      .limit(limit)
+      .skip(offset)
+      .populate('user_id', 'username');
+
+    res.json(entries);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-  if (req.query.to) {
-    sql += ' AND date <= ?';
-    params.push(req.query.to);
-  }
-  if (req.query.metric_type) {
-    sql += ' AND metric_type = ?';
-    params.push(req.query.metric_type);
-  }
-
-  sql += ' ORDER BY date DESC, created_at DESC';
-  const limit = req.query.limit || 50;
-  const offset = req.query.offset || 0;
-  sql += ' LIMIT ? OFFSET ?';
-  params.push(limit, offset);
-
-  const entries = db.prepare(sql).all(...params);
-  res.json(entries);
 });
 
 router.post('/', [
@@ -55,30 +56,47 @@ router.post('/', [
   body('lifting_weight').optional().isFloat().toFloat(),
   body('metric_type').optional().trim(),
   body('notes').optional(),
-], (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-  const { date, weight, body_fat, chest, waist, hips, biceps, thighs, run_time_minutes, lifting_weight, metric_type, notes } = req.body;
+    const { date, weight, body_fat, chest, waist, hips, biceps, thighs, run_time_minutes, lifting_weight, metric_type, notes } = req.body;
 
-  const result = db.prepare(`
-    INSERT INTO progress (user_id, weight, body_fat, chest, waist, hips, biceps, thighs, run_time_minutes, lifting_weight, metric_type, date, notes)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(
-    req.user.id,
-    weight ?? null, body_fat ?? null, chest ?? null, waist ?? null, hips ?? null,
-    biceps ?? null, thighs ?? null, run_time_minutes ?? null, lifting_weight ?? null,
-    metric_type || 'general', date.split('T')[0], notes || ''
-  );
+    const progress = new Progress({
+      user_id: req.user.id,
+      weight,
+      body_fat,
+      chest,
+      waist,
+      hips,
+      biceps,
+      thighs,
+      run_time_minutes,
+      lifting_weight,
+      metric_type: metric_type || 'general',
+      date: new Date(date),
+      notes
+    });
 
-  const entry = db.prepare('SELECT * FROM progress WHERE id = ?').get(result.lastInsertRowid);
-  res.status(201).json(entry);
+    await progress.save();
+    await progress.populate('user_id', 'username');
+
+    res.status(201).json(progress);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-router.get('/:id', (req, res) => {
-  const entry = db.prepare('SELECT * FROM progress WHERE id = ? AND user_id = ?').get(req.params.id, req.user.id);
-  if (!entry) return res.status(404).json({ error: 'Entry not found' });
-  res.json(entry);
+router.get('/:id', async (req, res) => {
+  try {
+    const entry = await Progress.findOne({ _id: req.params.id, user_id: req.user.id })
+      .populate('user_id', 'username');
+    if (!entry) return res.status(404).json({ error: 'Entry not found' });
+    res.json(entry);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 router.put('/:id', [
@@ -94,34 +112,42 @@ router.put('/:id', [
   body('lifting_weight').optional().isFloat().toFloat(),
   body('metric_type').optional().trim(),
   body('notes').optional(),
-], (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-  const entry = db.prepare('SELECT * FROM progress WHERE id = ? AND user_id = ?').get(req.params.id, req.user.id);
-  if (!entry) return res.status(404).json({ error: 'Entry not found' });
-
-  const updates = [];
-  const values = [];
-  const allowed = ['weight', 'body_fat', 'chest', 'waist', 'hips', 'biceps', 'thighs', 'run_time_minutes', 'lifting_weight', 'metric_type', 'notes', 'date'];
-  for (const k of allowed) {
-    if (req.body[k] !== undefined) {
-      updates.push(`${k} = ?`);
-      values.push(k === 'date' && req.body[k] ? req.body[k].split('T')[0] : req.body[k]);
+    const updates = {};
+    const allowed = ['weight', 'body_fat', 'chest', 'waist', 'hips', 'biceps', 'thighs', 'run_time_minutes', 'lifting_weight', 'metric_type', 'notes', 'date'];
+    for (const k of allowed) {
+      if (req.body[k] !== undefined) {
+        updates[k] = k === 'date' ? new Date(req.body[k]) : req.body[k];
+      }
     }
-  }
-  if (updates.length === 0) return res.status(400).json({ error: 'No valid fields to update' });
+    if (Object.keys(updates).length === 0) return res.status(400).json({ error: 'No valid fields to update' });
 
-  values.push(req.params.id);
-  db.prepare(`UPDATE progress SET ${updates.join(', ')} WHERE id = ?`).run(...values);
-  const updated = db.prepare('SELECT * FROM progress WHERE id = ?').get(req.params.id);
-  res.json(updated);
+    const progress = await Progress.findOneAndUpdate(
+      { _id: req.params.id, user_id: req.user.id },
+      updates,
+      { new: true }
+    ).populate('user_id', 'username');
+
+    if (!progress) return res.status(404).json({ error: 'Entry not found' });
+
+    res.json(progress);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-router.delete('/:id', (req, res) => {
-  const result = db.prepare('DELETE FROM progress WHERE id = ? AND user_id = ?').run(req.params.id, req.user.id);
-  if (result.changes === 0) return res.status(404).json({ error: 'Entry not found' });
-  res.status(204).send();
+router.delete('/:id', async (req, res) => {
+  try {
+    const result = await Progress.findOneAndDelete({ _id: req.params.id, user_id: req.user.id });
+    if (!result) return res.status(404).json({ error: 'Entry not found' });
+    res.status(204).send();
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 export default router;

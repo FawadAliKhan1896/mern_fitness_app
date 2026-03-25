@@ -1,36 +1,60 @@
 import { Router } from 'express';
 import { body, validationResult } from 'express-validator';
-import db from '../db.js';
+import Notification from '../models/Notification.js';
+import Reminder from '../models/Reminder.js';
 import { authenticateToken } from '../middleware/auth.js';
 
 const router = Router();
 router.use(authenticateToken);
 
-router.get('/', (req, res) => {
-  const notifications = db.prepare(`
-    SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 50
-  `).all(req.user.id);
-  res.json(notifications);
+router.get('/', async (req, res) => {
+  try {
+    const notifications = await Notification.find({ user_id: req.user.id })
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .populate('user_id', 'username');
+    res.json(notifications);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-router.patch('/:id/read', (req, res) => {
-  const result = db.prepare(`
-    UPDATE notifications SET read = 1 WHERE id = ? AND user_id = ?
-  `).run(req.params.id, req.user.id);
-  if (result.changes === 0) return res.status(404).json({ error: 'Notification not found' });
-  res.json({ ok: true });
+router.patch('/:id/read', async (req, res) => {
+  try {
+    const notification = await Notification.findOneAndUpdate(
+      { _id: req.params.id, user_id: req.user.id },
+      { read: true },
+      { new: true }
+    );
+    if (!notification) return res.status(404).json({ error: 'Notification not found' });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-router.patch('/read-all', (req, res) => {
-  db.prepare('UPDATE notifications SET read = 1 WHERE user_id = ?').run(req.user.id);
-  res.json({ ok: true });
+router.patch('/read-all', async (req, res) => {
+  try {
+    await Notification.updateMany(
+      { user_id: req.user.id },
+      { read: true }
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-router.get('/reminders', (req, res) => {
-  const reminders = db.prepare(`
-    SELECT * FROM reminders WHERE user_id = ? AND enabled = 1 ORDER BY scheduled_time ASC
-  `).all(req.user.id);
-  res.json(reminders);
+router.get('/reminders', async (req, res) => {
+  try {
+    const reminders = await Reminder.find({
+      user_id: req.user.id,
+      enabled: true
+    }).sort({ scheduled_time: 1 });
+    res.json(reminders);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 router.post('/reminders', [
@@ -38,18 +62,26 @@ router.post('/reminders', [
   body('title').trim().notEmpty(),
   body('scheduled_time').isISO8601(),
   body('recurrence').optional().isIn(['daily', 'weekly', 'once']),
-], (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-  const { type, title, scheduled_time, recurrence } = req.body;
-  const result = db.prepare(`
-    INSERT INTO reminders (user_id, type, title, scheduled_time, recurrence)
-    VALUES (?, ?, ?, ?, ?)
-  `).run(req.user.id, type, title, scheduled_time, recurrence || 'once');
+    const { type, title, scheduled_time, recurrence } = req.body;
 
-  const reminder = db.prepare('SELECT * FROM reminders WHERE id = ?').get(result.lastInsertRowid);
-  res.status(201).json(reminder);
+    const reminder = new Reminder({
+      user_id: req.user.id,
+      type,
+      title,
+      scheduled_time: new Date(scheduled_time),
+      recurrence: recurrence || 'once'
+    });
+
+    await reminder.save();
+    res.status(201).json(reminder);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 export default router;
